@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Image Gallery</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <h1 class="hero-heading">Gallery</h1>
+
+    <!-- Top Right Control Buttons -->
+    <div class="top-right-controls">
+        <button onclick="openCreateAlbumModal()" class="upload-btn" title="Create Album">➕</button>
+        <button onclick="openUploadModal()" class="upload-btn" title="Upload Media">📤</button>
+        <button onclick="deleteAllImages()" class="delete-all-btn" title="Clear All">🗑️</button>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search photos and albums..." onkeyup="performSearch()">
+    </div>
+
+    <!-- Navigation Menu -->
+    <div class="nav-menu">
+        <button class="nav-btn active" onclick="showSection('photos')">📷 Photos</button>
+        <button class="nav-btn" onclick="showSection('albums')">📁 Albums</button>
+        <button class="nav-btn" onclick="showSection('favorites')">⭐ Favorites</button>
+        <button class="nav-btn" onclick="showSection('trash')">🗑️ Trash</button>
+    </div>
+
+    <!-- View Options -->
+    <div class="view-options">
+        <button class="view-btn active" onclick="setView('grid')" title="Grid View">⊞</button>
+        <button class="view-btn" onclick="setView('timeline')" title="Timeline View">📅</button>
+        <button class="sort-btn" onclick="toggleSortMenu()">↕️ Sort</button>
+    </div>
+
+    <!-- Sort Menu -->
+    <div class="sort-menu" id="sortMenu" style="display:none;">
+        <button onclick="sortBy('date-newest')">📅 Newest</button>
+        <button onclick="sortBy('date-oldest')">📅 Oldest</button>
+        <button onclick="sortBy('name')">📝 Name</button>
+    </div>
+
+    <!-- Multi-select Toolbar -->
+    <div class="multi-select-toolbar" id="multiSelectToolbar" style="display:none;">
+        <span id="selectedCount">0 selected</span>
+        <button onclick="favoriteSelected()">⭐ Favorite</button>
+        <button onclick="deleteSelected()">🗑️ Delete</button>
+        <button onclick="cancelSelection()">✕ Cancel</button>
+    </div>
+
+    <!-- Storage Info -->
+    <div class="storage-info">
+        <span>💾 Storage: <span id="storageUsed">0</span> MB</span>
+    </div>
+
+    <!-- Sections Container -->
+    <div id="sectionsContainer">
+        <!-- Photos Section -->
+        <div class="section active" id="photosSection">
+            <div id="photosTimeline" class="photos-timeline"></div>
+        </div>
+
+        <!-- Albums Section -->
+        <div class="section" id="albumsSection">
+            <div class="filters">
+                <button class="filter-btn active" onclick="filterAlbums('all')">All Albums</button>
+                <button class="filter-btn" onclick="filterAlbums('default')">Default</button>
+                <button class="filter-btn" onclick="filterAlbums('custom')">Custom</button>
+            </div>
+            <div class="albums-container" id="albumsContainer"></div>
+        </div>
+
+        <!-- Favorites Section -->
+        <div class="section" id="favoritesSection">
+            <div class="media-grid" id="favoritesGrid"></div>
+        </div>
+
+        
+
+        <!-- Trash Section -->
+        <div class="section" id="trashSection">
+            <div class="media-grid" id="trashGrid"></div>
+            <div class="trash-actions" id="trashActions" style="display:none;">
+                <button onclick="restoreAllTrash()">♻️ Restore All</button>
+                <button onclick="permanentlyDeleteTrash()">🗑️ Empty Trash</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Album Modal -->
+    <div id="createAlbumModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeCreateAlbumModal()">×</button>
+            <h2>Create New Album</h2>
+            
+            <div class="modal-section">
+                <label>Album Name:</label>
+                <input type="text" id="albumNameInput" placeholder="Enter album name..." class="text-input">
+            </div>
+
+            <div class="modal-actions">
+                <button onclick="closeCreateAlbumModal()" class="btn-secondary">Cancel</button>
+                <button onclick="createNewAlbum()" class="btn-primary">Create</button>
+            </div>
+        </div>
+    </div>
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeUploadModal()">×</button>
+            <h2>Upload Media</h2>
+            
+            <!-- Media Type Selection -->
+            <div class="modal-section">
+                <label>Select Media Type:</label>
+                <div class="radio-group">
+                    <label class="radio-option">
+                        <input type="radio" name="mediaType" value="image" checked onchange="updateMediaType()">
+                        <span>📷 Photo</span>
+                    </label>
+                    <label class="radio-option">
+                        <input type="radio" name="mediaType" value="video" onchange="updateMediaType()">
+                        <span>🎬 Video</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Folder/Category Selection -->
+            <div class="modal-section">
+                <label>Select Album:</label>
+                <div class="album-select-grid" id="albumSelectGrid"></div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="modal-actions">
+                <button onclick="closeUploadModal()" class="btn-secondary">Cancel</button>
+                <button onclick="proceedWithUpload()" class="btn-primary">Select Files</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden File Inputs -->
+    <input type="file" id="uploadInput" accept="image/*" multiple style="display:none;" onchange="uploadImages()">
+    <input type="file" id="uploadVideoInput" accept="video/*" multiple style="display:none;" onchange="uploadVideos()">
+
+    <!-- Old Gallery (keep for backward compatibility) -->
+    <div class="gallery" id="gallery" style="display:none;">
+        <div class="media-card image nature" data-src="https://picsum.photos/id/1015/600/400" data-type="image">
+            <img src="https://picsum.photos/id/1015/600/400" onclick="openLightbox(this)">
+            <button class="delete-btn" onclick="deleteImage(event)">×</button>
+        </div>
+        <div class="media-card image nature" data-src="https://picsum.photos/id/1011/600/400" data-type="image">
+            <img src="https://picsum.photos/id/1011/600/400" onclick="openLightbox(this)">
+            <button class="delete-btn" onclick="deleteImage(event)">×</button>
+        </div>
+        <div class="media-card image city" data-src="https://picsum.photos/id/1012/600/400" data-type="image">
+            <img src="https://picsum.photos/id/1012/600/400" onclick="openLightbox(this)">
+            <button class="delete-btn" onclick="deleteImage(event)">×</button>
+        </div>
+        <div class="media-card image city" data-src="https://picsum.photos/id/1005/600/400" data-type="image">
+            <img src="https://picsum.photos/id/1005/600/400" onclick="openLightbox(this)">
+            <button class="delete-btn" onclick="deleteImage(event)">×</button>
+        </div>
+        <div class="media-card image tech" data-src="https://picsum.photos/id/180/600/400" data-type="image">
+            <img src="https://picsum.photos/id/180/600/400" onclick="openLightbox(this)">
+            <button class="delete-btn" onclick="deleteImage(event)">×</button>
+        </div>
+        <div class="media-card image tech" data-src="https://picsum.photos/id/1/600/400" data-type="image">
+            <img src="https://picsum.photos/id/1/600/400" onclick="openLightbox(this)">
+            <button class="delete-btn" onclick="deleteImage(event)">×</button>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div id="lightbox">
+        <!-- Top Controls -->
+        <div class="lightbox-header">
+            <div class="image-counter"><span id="current">1</span> / <span id="total">6</span></div>
+            <div class="lightbox-buttons">
+                <button onclick="toggleFullScreen()" title="Full Screen">⛶</button>
+                <button onclick="downloadImage()" title="Download">⬇️</button>
+                <button onclick="closeLightbox()" title="Close" class="close-btn">×</button>
+            </div>
+        </div>
+
+        <!-- Image Container with Zoom -->
+        <div class="lightbox-container" id="lightboxContainer">
+            <img id="lightbox-img" alt="Gallery Image" style="display:none;">
+            <video id="lightbox-video" controls autoplay style="display:none;"></video>
+        </div>
+
+        <!-- Navigation & Controls -->
+        <div class="lightbox-controls">
+            <button class="prev" onclick="changeImage(-1)" title="Previous (←)">❮</button>
+            <div class="zoom-controls">
+                <button onclick="zoomOut()" title="Zoom Out (−)">−</button>
+                <span id="zoomLevel">100%</span>
+                <button onclick="zoomIn()" title="Zoom In (+)">+</button>
+                <button onclick="resetZoom()" title="Reset (R)">↺</button>
+            </div>
+            <button class="next" onclick="changeImage(1)" title="Next (→)">❯</button>
+        </div>
+
+        <!-- Image Info -->
+        <div class="lightbox-info">
+            <p id="imageInfo">Image information</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
