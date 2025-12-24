@@ -1,4 +1,4 @@
-# 📷 Google Photos-Like Gallery - Complete Implementation
+# 📷 Gallery - Complete Implementation
 
 ## ✨ Features Implemented
 
@@ -173,3 +173,4 @@
 ---
 
 **Enjoy your full-featured Google Photos-like gallery! 🎉**
+
